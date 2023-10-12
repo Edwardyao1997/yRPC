@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="yrpc-framework" />
+        <module name="yrpc-core" />
+        <module name="yrpc-common" />
+        <module name="yrpc-api" />
+        <module name="yrpc-manager" />
+        <module name="yrpc-consumer-demo" />
+        <module name="yrpc-provider-demo" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="yrpc-api-demo" target="17" />
+      <module name="yrpc-client-demo" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
