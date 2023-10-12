@@ -7,7 +7,7 @@ public class Application {
         reference.setInterface(HelloYrpc.class);
         //代理做了些什么？
         //1.连接注册中心
-        //2.拉去服务列表
+        //2.拉取服务列表
         //3.选择服务并建立连接
         //4.发送请求，携带调用信息，获得结果
         YrpcBootstrap.getInstance()
