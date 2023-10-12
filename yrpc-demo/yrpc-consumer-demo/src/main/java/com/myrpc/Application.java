@@ -15,7 +15,7 @@ public class Application {
                 .registry(new RegistryConfig("zookeeper://127.0.0.1:2181"))
                 .reference(reference);
         //获取一个代理对象
-        HelloYrpc helloYrpc = xxx.get();
-        helloYrpc.sayhi("您好")
+        HelloYrpc helloYrpc = reference.get();
+        helloYrpc.sayhi("您好");
     }
 }

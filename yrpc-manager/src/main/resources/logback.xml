@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--属性配置管理，供引用使用-->
+
+    <!--定义日志输出内容的格式-->
+    <!--日志输出格式：
+       %-5level
+       %d{yyyy-MM-dd HH:mm:ss.SSS}日期
+       %c类的全限定名称
+       %M为method
+       %L为行号
+       %thread线程名称
+       %m或者%msg为信息
+       %n换行
+     -->
+    <property name="pattern" value="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n"></property>
+
+    <!--控制台日志输出的appender-->
+
+    <!--name属性指定appener的名称，class指定appender的类型-->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!--控制输出流对象 默认 System.out(黑色) 改为 System.err(红色)-->
+        <target>System.err</target>
+
+        <!--日志消息格式配置-->
+
+        <!-- 对记录事件进行格式化。1.把日志信息转换成字节数组 2.把字节数组写入到输出流 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--引用属性配置管理中定义的某个属性-->
+            <pattern>${pattern}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+
+    </appender>
+
+    <!--root logger 配置-->
+    <root level="debug">
+        <appender-ref ref="console"/>
+    </root>
+
+</configuration>
