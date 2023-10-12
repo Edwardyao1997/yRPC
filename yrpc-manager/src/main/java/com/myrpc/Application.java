@@ -1,12 +1,10 @@
 package com.myrpc;
 
-import com.myrpc.Exceptions.ZKException;
 import com.myrpc.utils.ZK.ZKNode;
 import com.myrpc.utils.ZK.ZKUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @Slf4j

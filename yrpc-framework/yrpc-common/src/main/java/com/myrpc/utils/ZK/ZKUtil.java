@@ -66,4 +66,20 @@ public class ZKUtil {
             throw new ZKException();
         }
     }
+
+    /**
+     * 判断节点是否存在
+     * @param zooKeeper 实例
+     * @param node 路径
+     * @param watcher
+     * @return true 存在 | false 不存在
+     */
+    public static Boolean exists(ZooKeeper zooKeeper,String node,Watcher watcher){
+        try {
+            return zooKeeper.exists(node,watcher) != null;
+        } catch (KeeperException | InterruptedException e) {
+            log.error("Exception when check Noode {} exitance",node,e);
+            throw new ZKException(e);
+        }
+    }
 }
