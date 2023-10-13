@@ -1,7 +1,16 @@
 package com.myrpc;
 
+import com.myrpc.Exceptions.NetworkException;
+import com.myrpc.discovery.NettyBootstrapInitializer;
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -54,6 +63,33 @@ public class ReferenceConfig<T> {
                     log.debug("服务调用方发现了服务【{}】的可用主机【{}】",interfaceRef.getName(),address);
                 }
                 //2.使用netty连接服务器，发送请求
+                //由于Netty是长链接，因此不应该每次都建立一个连接
+                //解决方法：缓存channel,尝试从缓存中获取channel,获取不到再创建链接再缓存
+                //从全局缓存中获取一个通道
+                Channel channel = YrpcBootstrap.CHANNEL_CACHE.get(address);
+                if(channel == null){
+                    //sync和await都会阻塞当前线程，获取返回值，因为连接的过程是异步的，发送数据的过程也是异步的
+                    //sync会主动在主线程抛出异常，await的异常在子线程中处理，需要使用future来处理
+                    channel = NettyBootstrapInitializer.getBootstrap()
+                            .connect(address).await().channel();
+                    YrpcBootstrap.CHANNEL_CACHE.put(address,channel);
+                }
+                if(channel == null){
+                    throw new NetworkException("获取channel发生异常");
+                }
+//                ChannelFuture channelFuture = channel.writeAndFlush(new Object()).await();
+//                if(channelFuture.isDone()){
+//                    Object object = channelFuture.getNow();
+//                } else if (!channelFuture.isSuccess()) {
+//                    //发生问题则要捕获异常,可以捕获异步任务中的异常
+//                    Throwable cause = channelFuture.cause();
+//                    throw new RuntimeException(cause)；
+//                }
+                //todo:异步策略
+                channel.writeAndFlush(new Object()).addListener((ChannelFutureListener) promise ->{
+
+                });
+
                 return null;
             }
         });

@@ -2,11 +2,19 @@ package com.myrpc;
 
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.sctp.nio.NioSctpServerChannel;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class YrpcBootstrap {
@@ -20,6 +28,8 @@ public class YrpcBootstrap {
     private Registry registry;
     //维护已发布的且暴露的服务列表 key:接口全限定名称，value:serviceConfig
     private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
+    //连接缓存，一定要看一下key是否重写了equals和toString方法
+    public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
     private int port = 8088;
     private YrpcBootstrap() {
         //构造一些初始化的过程
@@ -94,6 +104,36 @@ public class YrpcBootstrap {
      * 启动服务
      */
     public void start() {
+        //使用Netty进行通信
+        EventLoopGroup boss = new NioEventLoopGroup(2);
+        EventLoopGroup worker = new NioEventLoopGroup(10);
+        try{
+            //启动服务引导程序
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            //配置服务器
+            serverBootstrap = serverBootstrap.group(boss,worker)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel socketChannel){
+                            socketChannel.pipeline().addLast(null);
+                        }
+                    });
+            //绑定端口
+            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
+            channelFuture.channel().closeFuture().sync();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                boss.shutdownGracefully().sync();
+                worker.shutdownGracefully().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         try {
             Thread.sleep(1000000000);
         } catch (InterruptedException e) {
