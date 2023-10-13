@@ -1,10 +1,12 @@
 package com.myrpc;
 
-import com.myrpc.utils.ZK.ZKNode;
-import com.myrpc.utils.ZK.ZKUtil;
+import com.myrpc.discovery.Registry;
+import com.myrpc.discovery.RegistryConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooKeeper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class YrpcBootstrap {
@@ -14,7 +16,11 @@ public class YrpcBootstrap {
     private String applicationName = "default";
     private RegistryConfig registryConfig;
     private ProtocolConfig protocolConfig;
-    private ZooKeeper zooKeeper;
+    //todo:待处理
+    private Registry registry;
+    //维护已发布的且暴露的服务列表 key:接口全限定名称，value:serviceConfig
+    private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
+    private int port = 8088;
     private YrpcBootstrap() {
         //构造一些初始化的过程
     }
@@ -42,8 +48,8 @@ public class YrpcBootstrap {
      */
     public YrpcBootstrap registry(RegistryConfig registryConfig) {
         //维护一个zk实例，但是会造成耦合；
-        zooKeeper = ZKUtil.createZK();
-        this.registryConfig = registryConfig;
+        //尝试获取一个注册中心
+        this.registry = registryConfig.getRegistry();
         return this;
     }
 
@@ -68,17 +74,18 @@ public class YrpcBootstrap {
      * @return
      */
     public YrpcBootstrap publish(ServiceConfig<?> service) {
-        //服务节点名称
-        String parentNode = Constant.BASE_PROVIDERS+"/"+service.getInterface().getName();
-        //该节点是持久连接
-        if(!ZKUtil.exists(zooKeeper,parentNode,null)){
-            ZKNode zkNode = new ZKNode(parentNode,null);
-            ZKUtil.createNode(zooKeeper,zkNode,null, CreateMode.PERSISTENT);
-        }
-        //创建本机的临时节点
-
-        if(log.isDebugEnabled()){
-            log.debug("服务{}，已被注册",service.getInterface().getName());
+        //抽象了注册中心的概念，使用注册中心的实现完成注册
+        //
+        registry.register(service);
+        //1.服务调用方通过接口方法名和参数列表发起调用时，提供方如何知道使用哪个实现
+        //（1）new (2)Spring获取 （3）自行维护映射关系
+        SERVICE_LIST.put(service.getInterface().getName(),service);
+        return this;
+    }
+    public YrpcBootstrap publish(List<ServiceConfig<?>> services) {
+        //抽象了注册中心的概念，使用注册中心的实现完成注册
+        for (ServiceConfig<?> service : services) {
+            this.publish(service);
         }
         return this;
     }
@@ -87,7 +94,11 @@ public class YrpcBootstrap {
      * 启动服务
      */
     public void start() {
-
+        try {
+            Thread.sleep(1000000000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -98,6 +109,8 @@ public class YrpcBootstrap {
      */
     public YrpcBootstrap reference(ReferenceConfig<?> reference) {
         //拿到相关的配置项，对referrence进行配置，方便生成代理对象
+        //reference需要注册中心
+        reference.setRegistry(registry);
         return this;
     }
 }

@@ -1,6 +1,8 @@
 package com.myrpc;
 
-public class Application {
+import com.myrpc.discovery.RegistryConfig;
+
+public class ConsumerApplication {
     public static void main(String[] args) {
         //reference中包含生成代理的模板方法
         ReferenceConfig<HelloYrpc> reference = new ReferenceConfig<>();

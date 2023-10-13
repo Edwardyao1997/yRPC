@@ -1,8 +1,9 @@
 package com.myrpc;
 
+import com.myrpc.discovery.RegistryConfig;
 import com.myrpc.impl.HelloIYrpcImpl;
 
-public class Application {
+public class PeoviderApplication {
     public static void main(String[] args) {
         //服务提供方，注册并启动服务
         //1.封装要发布的服务

@@ -1,7 +1,7 @@
 package com.myrpc;
 
 import com.myrpc.utils.ZK.ZKNode;
-import com.myrpc.utils.ZK.ZKUtil;
+import com.myrpc.utils.ZK.ZKUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 
@@ -16,7 +16,7 @@ public class Application {
         //创建基础目录
 
 
-            ZooKeeper zooKeeper = ZKUtil.createZK();
+            ZooKeeper zooKeeper = ZKUtils.createZK();
             //定义节点和数据
             String basePath = "/myrpc-metadata";
             String providerPath = basePath+ "/providers";
@@ -26,9 +26,9 @@ public class Application {
             ZKNode consumerNode = new ZKNode(consumerPath,null);
             //创建节点
             List.of(baseNode,providerNode,consumerNode).forEach(node -> {
-               ZKUtil.createNode(zooKeeper,node,null,CreateMode.PERSISTENT);
+               ZKUtils.createNode(zooKeeper,node,null,CreateMode.PERSISTENT);
             });
-            ZKUtil.close(zooKeeper);
+            ZKUtils.close(zooKeeper);
 
     }
 }

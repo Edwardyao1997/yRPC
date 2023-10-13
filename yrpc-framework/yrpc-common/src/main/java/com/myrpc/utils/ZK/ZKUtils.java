@@ -6,10 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 @Slf4j
-public class ZKUtil {
+public class ZKUtils {
     public static ZooKeeper createZK() {
         String connectionString = Constant.DEFAULT_ZK_CONNECTION;
         int timeout = Constant.TIME_OUT;
@@ -79,6 +80,21 @@ public class ZKUtil {
             return zooKeeper.exists(node,watcher) != null;
         } catch (KeeperException | InterruptedException e) {
             log.error("Exception when check Noode {} exitance",node,e);
+            throw new ZKException(e);
+        }
+    }
+
+    /**
+     * 查询节点的子元素
+     * @param zooKeeper zk实例
+     * @param serviceNode 服务节点
+     * @return
+     */
+    public static List<String> getChildren(ZooKeeper zooKeeper, String serviceNode,Watcher watcher) {
+        try {
+            return zooKeeper.getChildren(serviceNode, watcher);
+        } catch (KeeperException | InterruptedException e) {
+            log.error("获取节点{}的子元素时发生异常，",serviceNode,e);
             throw new ZKException(e);
         }
     }
