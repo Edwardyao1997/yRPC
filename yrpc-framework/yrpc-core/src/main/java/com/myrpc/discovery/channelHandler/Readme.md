@@ -1,6 +1,11 @@
 服务调用方
 
 1.发送报文 writeAndFlush(object)【封装请求】
+
+
+YrpcRequest (请求Id(long) 压缩类型(byte) 序列化方式(byte) 消息类型(普通请求，心跳检测)(byte) 负载 (接口名称，方法名字，方法参数列表，返回值类型,不定长) )
+
+
 pipeline就生效，报文出站
 
 处理器一(out)：将object转化为请求对象(msg)

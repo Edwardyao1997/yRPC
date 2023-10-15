@@ -5,6 +5,8 @@ import com.myrpc.Exceptions.NetworkException;
 import com.myrpc.YrpcBootstrap;
 import com.myrpc.discovery.NettyBootstrapInitializer;
 import com.myrpc.discovery.Registry;
+import com.myrpc.transport.message.RequestPayload;
+import com.myrpc.transport.message.YrpcRequest;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -58,6 +60,23 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         /*
          * ---------------------报文封装----------------------
          */
+        //构建payload
+        RequestPayload requestPayload = RequestPayload.builder()
+                .interfaceName(interfaceRef.getName())
+                .methodName(method.getName())
+                .paraType(method.getParameterTypes())
+                .paraValue(args)
+                .returnType(method.getReturnType())
+                .build();
+        //todo 抽象不同的请求类型和编码形式
+        //构建请求体
+        YrpcRequest yrpcRequest = YrpcRequest.builder()
+                .request(1L)
+                .compressType((byte) 1)
+                .requestType((byte) 1)
+                .serializeType((byte) 1)
+                .requestPayload(requestPayload)
+                .build();
 //                ChannelFuture channelFuture = channel.writeAndFlush(new Object()).await();
 //                if(channelFuture.isDone()){
 //                    Object object = channelFuture.getNow();
@@ -71,7 +90,9 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         CompletableFuture<Object> completableFuture = new CompletableFuture<>();
         //todo:将compeleteFuture暴露
         YrpcBootstrap.PENDING_REQUEST.put(1L,completableFuture);
-        channel.writeAndFlush(Unpooled.copiedBuffer("hello".getBytes())).addListener((ChannelFutureListener) promise ->{
+        //这里写出了一个请求，这个请求的实例会进入pipeline,进而执行操作
+        //第一个出站程序一定是将请求对象转化为二进制报文
+        channel.writeAndFlush(yrpcRequest).addListener((ChannelFutureListener) promise ->{
             //当前promise的返回结果是writeAndFlush的返回结果
             //一旦数据被写出，这个promise就结束了
             //但是我们想要的是服务端给的返回值，这里不应处理completableFuture。只需要处理异常
