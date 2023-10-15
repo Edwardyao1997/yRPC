@@ -3,6 +3,8 @@ package com.myrpc;
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
@@ -11,9 +13,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -30,6 +34,8 @@ public class YrpcBootstrap {
     private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
     //连接缓存，一定要看一下key是否重写了equals和toString方法
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
+    //定义全局对外挂起的CompletableFuture
+    public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
     private int port = 8088;
     private YrpcBootstrap() {
         //构造一些初始化的过程
@@ -115,8 +121,16 @@ public class YrpcBootstrap {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel socketChannel){
-                            socketChannel.pipeline().addLast(null);
+                        protected void initChannel(SocketChannel socketChannel) {
+                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<>() {
+                                @Override
+                                protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
+                                    ByteBuf byteBuf = (ByteBuf) msg;
+                                    log.info("byteBuf->{}",byteBuf.toString(Charset.defaultCharset()));
+                                    //可以就此不管，也可以写回
+                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("yrpc--hello".getBytes()));
+                                }
+                            });
                         }
                     });
             //绑定端口

@@ -1,7 +1,9 @@
 package com.myrpc;
 
 import com.myrpc.discovery.RegistryConfig;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ConsumerApplication {
     public static void main(String[] args) {
         //reference中包含生成代理的模板方法
@@ -18,6 +20,7 @@ public class ConsumerApplication {
                 .reference(reference);
         //获取一个代理对象
         HelloYrpc helloYrpc = reference.get();
-        helloYrpc.sayhi("您好");
+        String sayhi = helloYrpc.sayhi("您好");
+        log.info("sayHi->{}",sayhi);
     }
 }
