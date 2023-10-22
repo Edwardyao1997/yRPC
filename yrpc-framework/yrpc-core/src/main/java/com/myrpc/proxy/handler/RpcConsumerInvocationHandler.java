@@ -5,6 +5,7 @@ import com.myrpc.Exceptions.NetworkException;
 import com.myrpc.YrpcBootstrap;
 import com.myrpc.discovery.NettyBootstrapInitializer;
 import com.myrpc.discovery.Registry;
+import com.myrpc.enumration.RequestType;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
 import io.netty.buffer.Unpooled;
@@ -71,9 +72,9 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         //todo 抽象不同的请求类型和编码形式
         //构建请求体
         YrpcRequest yrpcRequest = YrpcRequest.builder()
-                .request(1L)
+                .requestId(1L)
                 .compressType((byte) 1)
-                .requestType((byte) 1)
+                .requestType(RequestType.REQUEST.getId())
                 .serializeType((byte) 1)
                 .requestPayload(requestPayload)
                 .build();

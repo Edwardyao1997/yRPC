@@ -1,5 +1,6 @@
 package com.myrpc.proxy.handler;
 
+import com.myrpc.enumration.RequestType;
 import com.myrpc.transport.message.MessageFormatConstant;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
@@ -11,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.nio.charset.StandardCharsets;
+
 @Slf4j
 /**
  * 出站时第一个经过的处理器
@@ -39,26 +40,36 @@ public class YrpcMessageEncodreHandler extends MessageToByteEncoder<YrpcRequest>
         byteBuf.writeBytes(MessageFormatConstant.MAGIC);
         byteBuf.writeByte(MessageFormatConstant.VERSION);
         byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
-        byteBuf.writerIndex(byteBuf.writerIndex()+4);
+        byteBuf.writerIndex(byteBuf.writerIndex()+MessageFormatConstant.FULL_FIELD_LENGTH);
         //总长度咱不知道
         byteBuf.writeByte(yrpcRequest.getRequestType());
         byteBuf.writeByte(yrpcRequest.getCompressType());
         byteBuf.writeByte(yrpcRequest.getSerializeType());
         byteBuf.writeLong(yrpcRequest.getRequestId());
+        //判断，心跳请求就不处理请求体
         byte[] body = getBodyBytes(yrpcRequest.getRequestPayload());
+        if(body == null){
+            byteBuf.writeBytes(body);
+        }
         //写入请求负载
-        byteBuf.writeBytes(body);
+        int bodyLength = body == null? 0:body.length;
         //保存当前写指针
         int currentIndex = byteBuf.writerIndex();
         //移动写指针至header总长度位置
-        byteBuf.writerIndex(7);
-        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH+body.length);
+        byteBuf.writerIndex(MessageFormatConstant.MAGIC.length
+                +MessageFormatConstant.VERSION_LENGTH
+                +MessageFormatConstant.HEADER_FIELD_LENGTH);
+        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH+bodyLength);
         //将写指针归位
         byteBuf.writerIndex(currentIndex);
 
     }
     private byte[] getBodyBytes(RequestPayload requestPayload){
-        //将对象编程一个字节数组
+        //todo 对不同的请求做出不同的处理
+        //将对象编程序列化为一个字节数组
+        if(requestPayload == null){
+            return null;
+        }
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream outputStream = null;

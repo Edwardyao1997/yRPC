@@ -2,6 +2,9 @@ package com.myrpc;
 
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
+import com.myrpc.discovery.channelHandler.MethodCallHandler;
+import com.myrpc.proxy.handler.YrpcMessageDecoderHandler;
+import com.myrpc.proxy.handler.YrpcMessageEncodreHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -10,6 +13,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -31,7 +35,7 @@ public class YrpcBootstrap {
     //todo:待处理
     private Registry registry;
     //维护已发布的且暴露的服务列表 key:接口全限定名称，value:serviceConfig
-    private static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
+    public static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
     //连接缓存，一定要看一下key是否重写了equals和toString方法
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
     //定义全局对外挂起的CompletableFuture
@@ -122,15 +126,9 @@ public class YrpcBootstrap {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
-                            socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<>() {
-                                @Override
-                                protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
-                                    ByteBuf byteBuf = (ByteBuf) msg;
-                                    log.info("byteBuf->{}",byteBuf.toString(Charset.defaultCharset()));
-                                    //可以就此不管，也可以写回
-                                    channelHandlerContext.channel().writeAndFlush(Unpooled.copiedBuffer("yrpc--hello".getBytes()));
-                                }
-                            });
+                            socketChannel.pipeline().addLast(new LoggingHandler())
+                                    .addLast(new YrpcMessageDecoderHandler())
+                                    .addLast(new MethodCallHandler());
                         }
                     });
             //绑定端口
