@@ -1,6 +1,5 @@
 package com.myrpc.proxy.handler;
 
-import com.myrpc.enumration.RequestType;
 import com.myrpc.transport.message.MessageFormatConstant;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
@@ -27,7 +26,7 @@ import java.io.ObjectOutputStream;
  *
  * body 不定长
  */
-public class YrpcMessageEncodreHandler extends MessageToByteEncoder<YrpcRequest> {
+public class YrpcRequestEncoderHandler extends MessageToByteEncoder<YrpcRequest> {
     /**
      * 封装报文的方法
      * @param channelHandlerContext
@@ -48,21 +47,24 @@ public class YrpcMessageEncodreHandler extends MessageToByteEncoder<YrpcRequest>
         byteBuf.writeLong(yrpcRequest.getRequestId());
         //判断，心跳请求就不处理请求体
         byte[] body = getBodyBytes(yrpcRequest.getRequestPayload());
-        if(body == null){
+        if (body != null) {
             byteBuf.writeBytes(body);
         }
-        //写入请求负载
-        int bodyLength = body == null? 0:body.length;
-        //保存当前写指针
-        int currentIndex = byteBuf.writerIndex();
-        //移动写指针至header总长度位置
-        byteBuf.writerIndex(MessageFormatConstant.MAGIC.length
-                +MessageFormatConstant.VERSION_LENGTH
-                +MessageFormatConstant.HEADER_FIELD_LENGTH);
-        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH+bodyLength);
-        //将写指针归位
-        byteBuf.writerIndex(currentIndex);
+        int bodyLength = body == null ? 0 : body.length;
 
+        // 重新处理报文的总长度
+        // 先保存当前的写指针的位置
+        int writerIndex = byteBuf.writerIndex();
+        // 将写指针的位置移动到总长度的位置上
+        byteBuf.writerIndex(MessageFormatConstant.MAGIC.length
+                + MessageFormatConstant.VERSION_LENGTH + MessageFormatConstant.HEADER_FIELD_LENGTH
+        );
+        byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
+        // 将写指针归位
+        byteBuf.writerIndex(writerIndex);
+        if(log.isDebugEnabled()){
+            log.debug("请求【{}】已完成报文编码",yrpcRequest.getRequestId());
+        }
     }
     private byte[] getBodyBytes(RequestPayload requestPayload){
         //todo 对不同的请求做出不同的处理
@@ -72,8 +74,7 @@ public class YrpcMessageEncodreHandler extends MessageToByteEncoder<YrpcRequest>
         }
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream outputStream = null;
-            outputStream = new ObjectOutputStream(baos);
+            ObjectOutputStream outputStream  = new ObjectOutputStream(baos);
             outputStream.writeObject(requestPayload);
             return baos.toByteArray();
         } catch (IOException e) {

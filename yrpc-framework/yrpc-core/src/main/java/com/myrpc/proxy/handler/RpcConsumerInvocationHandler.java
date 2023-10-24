@@ -90,7 +90,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         //4.写出报文
         CompletableFuture<Object> completableFuture = new CompletableFuture<>();
         //todo:将compeleteFuture暴露
-        YrpcBootstrap.PENDING_REQUEST.put(1L,completableFuture);
+        YrpcBootstrap.PENDING_REQUEST.put(yrpcRequest.getRequestId(), completableFuture);
         //这里写出了一个请求，这个请求的实例会进入pipeline,进而执行操作
         //第一个出站程序一定是将请求对象转化为二进制报文
         channel.writeAndFlush(yrpcRequest).addListener((ChannelFutureListener) promise ->{

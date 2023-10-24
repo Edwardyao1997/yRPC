@@ -3,21 +3,17 @@ package com.myrpc;
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
 import com.myrpc.discovery.channelHandler.MethodCallHandler;
-import com.myrpc.proxy.handler.YrpcMessageDecoderHandler;
-import com.myrpc.proxy.handler.YrpcMessageEncodreHandler;
+import com.myrpc.proxy.handler.YrpcRequestDecoderHandler;
+import com.myrpc.proxy.handler.YrpcResponseEncoderHandler;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,8 +123,9 @@ public class YrpcBootstrap {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
                             socketChannel.pipeline().addLast(new LoggingHandler())
-                                    .addLast(new YrpcMessageDecoderHandler())
-                                    .addLast(new MethodCallHandler());
+                                    .addLast(new YrpcRequestDecoderHandler())
+                                    .addLast(new MethodCallHandler())
+                                    .addLast(new YrpcResponseEncoderHandler());
                         }
                     });
             //绑定端口

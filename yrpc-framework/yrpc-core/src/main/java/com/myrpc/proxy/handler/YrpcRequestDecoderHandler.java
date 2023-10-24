@@ -1,6 +1,5 @@
 package com.myrpc.proxy.handler;
 
-import com.myrpc.YrpcBootstrap;
 import com.myrpc.enumration.RequestType;
 import com.myrpc.transport.message.MessageFormatConstant;
 import com.myrpc.transport.message.RequestPayload;
@@ -14,8 +13,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 @Slf4j
-public class YrpcMessageDecoderHandler extends LengthFieldBasedFrameDecoder {
-    public YrpcMessageDecoderHandler() {
+public class YrpcRequestDecoderHandler extends LengthFieldBasedFrameDecoder {
+    public YrpcRequestDecoderHandler() {
         super(
                 //最大帧长度，超过则直接丢弃
                 MessageFormatConstant.MAX_FRAME_LENGTH,
@@ -70,6 +69,7 @@ public class YrpcMessageDecoderHandler extends LengthFieldBasedFrameDecoder {
         yrpcRequest.setRequestType(requestTyte);
         yrpcRequest.setCompressType(compressType);
         yrpcRequest.setSerializeType(serializeType);
+        yrpcRequest.setRequestId(requestId);
         //todo 心跳检测的请求没有负载，可以执行判断并直接返回
         if(requestTyte == RequestType.HEART_BEAT.getId()){
             return yrpcRequest;
@@ -87,6 +87,9 @@ public class YrpcMessageDecoderHandler extends LengthFieldBasedFrameDecoder {
             yrpcRequest.setRequestPayload(requestPayload);
         } catch (IOException | ClassNotFoundException e) {
             log.error("请求【{}】解析时发生错误",requestId,e);
+        }
+        if(log.isDebugEnabled()){
+            log.debug("请求【{}】已经在服务端完成解码",yrpcRequest.getRequestId());
         }
         return yrpcRequest;
     }
