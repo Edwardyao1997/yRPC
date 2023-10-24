@@ -72,6 +72,7 @@ public class YrpcResponseDecoderHandler extends LengthFieldBasedFrameDecoder {
         yrpcResponse.setCode(responseCode);
         yrpcResponse.setCompressType(compressType);
         yrpcResponse.setSerializeType(serializeType);
+        yrpcResponse.setRequestId(requestId);
         //todo 心跳检测的请求没有负载，可以执行判断并直接返回
 //        if(requestTyte == RequestType.HEART_BEAT.getId()){
 //            return yrpcRequest;

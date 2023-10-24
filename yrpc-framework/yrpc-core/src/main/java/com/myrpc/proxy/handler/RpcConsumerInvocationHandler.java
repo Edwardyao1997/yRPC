@@ -72,7 +72,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         //todo 抽象不同的请求类型和编码形式
         //构建请求体
         YrpcRequest yrpcRequest = YrpcRequest.builder()
-                .requestId(1L)
+                .requestId(YrpcBootstrap.ID_GENERATOR.getId())
                 .compressType((byte) 1)
                 .requestType(RequestType.REQUEST.getId())
                 .serializeType((byte) 1)

@@ -5,6 +5,7 @@ import com.myrpc.discovery.RegistryConfig;
 import com.myrpc.discovery.channelHandler.MethodCallHandler;
 import com.myrpc.proxy.handler.YrpcRequestDecoderHandler;
 import com.myrpc.proxy.handler.YrpcResponseEncoderHandler;
+import com.myrpc.utils.IdGenerator;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -37,6 +38,7 @@ public class YrpcBootstrap {
     //定义全局对外挂起的CompletableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
     private int port = 8088;
+    public static final IdGenerator ID_GENERATOR = new IdGenerator(1,2);
     private YrpcBootstrap() {
         //构造一些初始化的过程
     }
