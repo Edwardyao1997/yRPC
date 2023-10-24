@@ -8,7 +8,6 @@ import com.myrpc.discovery.Registry;
 import com.myrpc.enumration.RequestType;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.extern.slf4j.Slf4j;
