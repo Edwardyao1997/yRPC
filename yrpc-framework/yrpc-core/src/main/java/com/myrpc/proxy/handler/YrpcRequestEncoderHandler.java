@@ -1,16 +1,14 @@
 package com.myrpc.proxy.handler;
 
+import com.myrpc.YrpcBootstrap;
+import com.myrpc.serialize.Serializer;
+import com.myrpc.serialize.SerializerFactory;
 import com.myrpc.transport.message.MessageFormatConstant;
-import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 @Slf4j
 /**
@@ -40,13 +38,16 @@ public class YrpcRequestEncoderHandler extends MessageToByteEncoder<YrpcRequest>
         byteBuf.writeByte(MessageFormatConstant.VERSION);
         byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
         byteBuf.writerIndex(byteBuf.writerIndex()+MessageFormatConstant.FULL_FIELD_LENGTH);
-        //总长度咱不知道
+        //总长度暂不知道
         byteBuf.writeByte(yrpcRequest.getRequestType());
         byteBuf.writeByte(yrpcRequest.getCompressType());
         byteBuf.writeByte(yrpcRequest.getSerializeType());
         byteBuf.writeLong(yrpcRequest.getRequestId());
         //判断，心跳请求就不处理请求体
-        byte[] body = getBodyBytes(yrpcRequest.getRequestPayload());
+        //序列化可以被提取为工具类
+        Serializer serializer = SerializerFactory.getSerializer(YrpcBootstrap.SERIALIZE_TYPE).getSerializer();
+        byte[] body = serializer.serilize(yrpcRequest.getRequestPayload());
+
         if (body != null) {
             byteBuf.writeBytes(body);
         }
@@ -64,22 +65,6 @@ public class YrpcRequestEncoderHandler extends MessageToByteEncoder<YrpcRequest>
         byteBuf.writerIndex(writerIndex);
         if(log.isDebugEnabled()){
             log.debug("请求【{}】已完成报文编码",yrpcRequest.getRequestId());
-        }
-    }
-    private byte[] getBodyBytes(RequestPayload requestPayload){
-        //todo 对不同的请求做出不同的处理
-        //将对象编程序列化为一个字节数组
-        if(requestPayload == null){
-            return null;
-        }
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream outputStream  = new ObjectOutputStream(baos);
-            outputStream.writeObject(requestPayload);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error("序列化时出现异常");
-            throw new RuntimeException(e);
         }
     }
 }

@@ -3,6 +3,8 @@ package com.myrpc;
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
 import com.myrpc.discovery.channelHandler.MethodCallHandler;
+import com.myrpc.loadbalance.LoadBalancer;
+import com.myrpc.loadbalance.impl.RoundRobinLoadBalancer;
 import com.myrpc.proxy.handler.YrpcRequestDecoderHandler;
 import com.myrpc.proxy.handler.YrpcResponseEncoderHandler;
 import com.myrpc.utils.IdGenerator;
@@ -31,6 +33,7 @@ public class YrpcBootstrap {
     private ProtocolConfig protocolConfig;
     //todo:待处理
     private Registry registry;
+    public static LoadBalancer LOAD_BALANCER;
     //维护已发布的且暴露的服务列表 key:接口全限定名称，value:serviceConfig
     public static final Map<String,ServiceConfig<?>> SERVICE_LIST = new HashMap<>(16);
     //连接缓存，一定要看一下key是否重写了equals和toString方法
@@ -39,6 +42,7 @@ public class YrpcBootstrap {
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
     private int port = 8088;
     public static final IdGenerator ID_GENERATOR = new IdGenerator(1,2);
+    public static String SERIALIZE_TYPE = "JDK";
     private YrpcBootstrap() {
         //构造一些初始化的过程
     }
@@ -68,6 +72,7 @@ public class YrpcBootstrap {
         //维护一个zk实例，但是会造成耦合；
         //尝试获取一个注册中心
         this.registry = registryConfig.getRegistry();
+        YrpcBootstrap.LOAD_BALANCER = new RoundRobinLoadBalancer();
         return this;
     }
 
@@ -163,5 +168,22 @@ public class YrpcBootstrap {
         //reference需要注册中心
         reference.setRegistry(registry);
         return this;
+    }
+
+    /**
+     * 配置序列化方式
+     * @param serialize
+     * @return
+     */
+    public YrpcBootstrap serialize(String serializeType){
+        SERIALIZE_TYPE = serializeType;
+        if(log.isDebugEnabled()){
+            log.debug("配置序列化方式为【{}】",serializeType);
+        }
+        return this;
+    }
+
+    public Registry getRegistry() {
+        return registry;
     }
 }

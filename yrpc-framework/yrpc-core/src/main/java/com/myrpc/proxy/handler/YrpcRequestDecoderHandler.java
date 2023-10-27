@@ -1,6 +1,9 @@
 package com.myrpc.proxy.handler;
 
 import com.myrpc.enumration.RequestType;
+import com.myrpc.serialize.Serializer;
+import com.myrpc.serialize.SerializerFactory;
+import com.myrpc.serialize.SerializerWrapper;
 import com.myrpc.transport.message.MessageFormatConstant;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
@@ -78,18 +81,12 @@ public class YrpcRequestDecoderHandler extends LengthFieldBasedFrameDecoder {
         int payloadLength = fullLength - headLength;
         byte[] payload = new byte[payloadLength];
         byteBuf.readBytes(payload);
-        //有字节数组后可以进行解压缩，反序列化
-        //todo 反序列化
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(payload);
-             ObjectInputStream ois = new ObjectInputStream(bis);
-             ){
-            RequestPayload requestPayload = (RequestPayload) ois.readObject();
-            yrpcRequest.setRequestPayload(requestPayload);
-        } catch (IOException | ClassNotFoundException e) {
-            log.error("请求【{}】解析时发生错误",requestId,e);
-        }
+        //反序列化
+        Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+        RequestPayload requestPayload = serializer.deserialize(payload, RequestPayload.class);
+        yrpcRequest.setRequestPayload(requestPayload);
         if(log.isDebugEnabled()){
-            log.debug("请求【{}】已经在服务端完成解码",yrpcRequest.getRequestId());
+            log.debug("请求【{}】已完成解码工作",yrpcRequest.getRequestId());
         }
         return yrpcRequest;
     }

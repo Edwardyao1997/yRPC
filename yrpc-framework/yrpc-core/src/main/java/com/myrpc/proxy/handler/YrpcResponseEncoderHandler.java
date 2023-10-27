@@ -1,5 +1,7 @@
 package com.myrpc.proxy.handler;
 
+import com.myrpc.serialize.Serializer;
+import com.myrpc.serialize.SerializerFactory;
 import com.myrpc.transport.message.MessageFormatConstant;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
@@ -47,7 +49,10 @@ public class YrpcResponseEncoderHandler extends MessageToByteEncoder<YrpcRespons
         byteBuf.writeByte(yrpcResponse.getCompressType());
         byteBuf.writeLong(yrpcResponse.getRequestId());
         //判断，心跳请求就不处理请求体
-        byte[] body = getBodyBytes(yrpcResponse.getBody());
+        //byte[] body = getBodyBytes(yrpcResponse.getBody());
+        //
+        Serializer serializer = SerializerFactory.getSerializer(yrpcResponse.getSerializeType()).getSerializer();
+        byte[] body = serializer.serilize(yrpcResponse.getBody());
         if(body != null){
             byteBuf.writeBytes(body);
         }
@@ -66,21 +71,5 @@ public class YrpcResponseEncoderHandler extends MessageToByteEncoder<YrpcRespons
             log.debug("响应【{}】已经在服务端完成编码",yrpcResponse.getRequestId());
         }
 
-    }
-    private byte[] getBodyBytes(Object body){
-        //todo 对不同的请求做出不同的处理
-        //将对象编程序列化为一个字节数组
-        if(body == null){
-            return null;
-        }
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream outputStream = new ObjectOutputStream(baos);
-            outputStream.writeObject(body);
-            return baos.toByteArray();
-        } catch (IOException e) {
-            log.error("序列化时出现异常");
-            throw new RuntimeException(e);
-        }
     }
 }

@@ -11,6 +11,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooKeeper;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 @Slf4j
 public class NacosRegistry extends AbstarctRegistry {
@@ -44,7 +45,7 @@ public class NacosRegistry extends AbstarctRegistry {
     }
 
     @Override
-    public InetSocketAddress lookFor(String serviceName) {
+    public List<InetSocketAddress> lookFor(String serviceName) {
         return null;
     }
 }

@@ -6,6 +6,7 @@ import com.myrpc.YrpcBootstrap;
 import com.myrpc.discovery.NettyBootstrapInitializer;
 import com.myrpc.discovery.Registry;
 import com.myrpc.enumration.RequestType;
+import com.myrpc.serialize.SerializerFactory;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
 import io.netty.channel.Channel;
@@ -45,9 +46,8 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         log.info("args-->{}",args);
         //1.发现服务，从注册中心，找一个可用的服务；
         //传入服务名字，返回ip+端口
-        //todo:每次调用方法时候都需要注册中心拉取服务列表吗？ 使用本地缓存+Watcher
-        //     如何合理的选择一个可用的服务，而不是只获取第一个? 实现负载均衡策略
-        InetSocketAddress address = registry.lookFor(interfaceRef.getName());
+        //如何合理的选择一个可用的服务，而不是只获取第一个? 实现负载均衡策略
+        InetSocketAddress address = YrpcBootstrap.LOAD_BALANCER.selectServiceAddress(interfaceRef.getName());
         if(log.isDebugEnabled()){
             log.debug("服务调用方发现了服务【{}】的可用主机【{}】",interfaceRef.getName(),address);
         }
@@ -74,7 +74,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
                 .requestId(YrpcBootstrap.ID_GENERATOR.getId())
                 .compressType((byte) 1)
                 .requestType(RequestType.REQUEST.getId())
-                .serializeType((byte) 1)
+                .serializeType(SerializerFactory.getSerializer(YrpcBootstrap.SERIALIZE_TYPE).getCode())
                 .requestPayload(requestPayload)
                 .build();
 //                ChannelFuture channelFuture = channel.writeAndFlush(new Object()).await();

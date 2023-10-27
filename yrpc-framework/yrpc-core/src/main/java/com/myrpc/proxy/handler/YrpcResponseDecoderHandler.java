@@ -2,6 +2,8 @@ package com.myrpc.proxy.handler;
 
 import com.myrpc.enumration.RequestType;
 import com.myrpc.enumration.ResponseCode;
+import com.myrpc.serialize.Serializer;
+import com.myrpc.serialize.SerializerFactory;
 import com.myrpc.transport.message.MessageFormatConstant;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
@@ -83,14 +85,9 @@ public class YrpcResponseDecoderHandler extends LengthFieldBasedFrameDecoder {
         byteBuf.readBytes(payload);
         //有字节数组后可以进行解压缩，反序列化
         //todo 反序列化
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(payload);
-             ObjectInputStream ois = new ObjectInputStream(bis);
-             ){
-            Object body = ois.readObject();
-            yrpcResponse.setBody(body);
-        } catch (IOException | ClassNotFoundException e) {
-            log.error("请求【{}】解析时发生错误",requestId,e);
-        }
+        Serializer serializer = SerializerFactory.getSerializer(yrpcResponse.getSerializeType()).getSerializer();
+        Object body = serializer.deserialize(payload, Object.class);
+        yrpcResponse.setBody(body);
         if(log.isDebugEnabled()){
             log.debug("响应【{}】已经在调用端完成解码",yrpcResponse.getRequestId());
         }

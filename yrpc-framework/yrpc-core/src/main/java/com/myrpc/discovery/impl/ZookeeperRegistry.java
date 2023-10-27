@@ -2,7 +2,6 @@ package com.myrpc.discovery.impl;
 
 import com.myrpc.Constant;
 import com.myrpc.Exceptions.DiscoveryException;
-import com.myrpc.Exceptions.NetworkException;
 import com.myrpc.ServiceConfig;
 import com.myrpc.discovery.AbstarctRegistry;
 import com.myrpc.utils.Net.NetUtils;
@@ -14,7 +13,6 @@ import org.apache.zookeeper.ZooKeeper;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class ZookeeperRegistry extends AbstarctRegistry {
@@ -47,8 +45,14 @@ public class ZookeeperRegistry extends AbstarctRegistry {
         }
     }
 
+    /**
+     * 注册中心的应该返回可用的服务列表
+     *
+     * @param serviceName 服务名称
+     * @return 服务列表
+     */
     @Override
-    public InetSocketAddress lookFor(String serviceName) {
+    public List<InetSocketAddress> lookFor(String serviceName) {
         // 找到服务对应节点
         String serviceNode = Constant.BASE_PROVIDERS+"/"+serviceName;
         // 从zk中获取子节点
@@ -63,6 +67,6 @@ public class ZookeeperRegistry extends AbstarctRegistry {
         if(inetSocketAddresses.size() == 0){
             throw new DiscoveryException("未发现任何服务主机");
         }
-        return inetSocketAddresses.get(0);
+        return inetSocketAddresses;
     }
 }
