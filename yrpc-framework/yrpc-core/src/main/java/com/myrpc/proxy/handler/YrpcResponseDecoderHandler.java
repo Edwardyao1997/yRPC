@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Date;
 
 @Slf4j
 public class YrpcResponseDecoderHandler extends LengthFieldBasedFrameDecoder {
@@ -69,12 +70,15 @@ public class YrpcResponseDecoderHandler extends LengthFieldBasedFrameDecoder {
         byte compressType = byteBuf.readByte();
         //请求id
         long requestId = byteBuf.readLong();
+        //时间戳
+        long timeStamp = byteBuf.readLong();
         //封装接收到的报文
         YrpcResponse yrpcResponse = new YrpcResponse();
         yrpcResponse.setCode(responseCode);
         yrpcResponse.setCompressType(compressType);
         yrpcResponse.setSerializeType(serializeType);
         yrpcResponse.setRequestId(requestId);
+        yrpcResponse.setTimeStamp(new Date().getTime());
         //todo 心跳检测的请求没有负载，可以执行判断并直接返回
 //        if(requestTyte == RequestType.HEART_BEAT.getId()){
 //            return yrpcRequest;
@@ -85,9 +89,11 @@ public class YrpcResponseDecoderHandler extends LengthFieldBasedFrameDecoder {
         byteBuf.readBytes(payload);
         //有字节数组后可以进行解压缩，反序列化
         //todo 反序列化
-        Serializer serializer = SerializerFactory.getSerializer(yrpcResponse.getSerializeType()).getSerializer();
-        Object body = serializer.deserialize(payload, Object.class);
-        yrpcResponse.setBody(body);
+        if(payload.length > 0) {
+            Serializer serializer = SerializerFactory.getSerializer(yrpcResponse.getSerializeType()).getSerializer();
+            Object body = serializer.deserialize(payload, Object.class);
+            yrpcResponse.setBody(body);
+        }
         if(log.isDebugEnabled()){
             log.debug("响应【{}】已经在调用端完成解码",yrpcResponse.getRequestId());
         }

@@ -3,6 +3,7 @@ package com.myrpc;
 import com.myrpc.discovery.Registry;
 import com.myrpc.discovery.RegistryConfig;
 import com.myrpc.discovery.channelHandler.MethodCallHandler;
+import com.myrpc.heartbeat.HeartBeatDetector;
 import com.myrpc.loadbalance.LoadBalancer;
 import com.myrpc.loadbalance.impl.RoundRobinLoadBalancer;
 import com.myrpc.proxy.handler.YrpcRequestDecoderHandler;
@@ -40,7 +41,7 @@ public class YrpcBootstrap {
     public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
     //定义全局对外挂起的CompletableFuture
     public final static Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
-    private int port = 8088;
+    public static final int PORT = 8089;
     public static final IdGenerator ID_GENERATOR = new IdGenerator(1,2);
     public static String SERIALIZE_TYPE = "JDK";
     private YrpcBootstrap() {
@@ -136,7 +137,7 @@ public class YrpcBootstrap {
                         }
                     });
             //绑定端口
-            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
+            ChannelFuture channelFuture = serverBootstrap.bind(PORT).sync();
             channelFuture.channel().closeFuture().sync();
 
         } catch (InterruptedException e) {

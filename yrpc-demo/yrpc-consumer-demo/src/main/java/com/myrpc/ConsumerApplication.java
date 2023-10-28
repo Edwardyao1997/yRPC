@@ -1,7 +1,10 @@
 package com.myrpc;
 
 import com.myrpc.discovery.RegistryConfig;
+import com.myrpc.heartbeat.HeartBeatDetector;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Map;
 
 @Slf4j
 public class ConsumerApplication {
@@ -23,5 +26,7 @@ public class ConsumerApplication {
         HelloYrpc helloYrpc = reference.get();
         String sayhi = helloYrpc.sayhi("您好");
         log.info("sayHi->{}",sayhi);
+        log.info("开始心跳检测");
+        HeartBeatDetector.detectHeartbeat(HelloYrpc.class.getName());
     }
 }

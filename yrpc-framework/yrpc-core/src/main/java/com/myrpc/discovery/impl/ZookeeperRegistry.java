@@ -3,6 +3,7 @@ package com.myrpc.discovery.impl;
 import com.myrpc.Constant;
 import com.myrpc.Exceptions.DiscoveryException;
 import com.myrpc.ServiceConfig;
+import com.myrpc.YrpcBootstrap;
 import com.myrpc.discovery.AbstarctRegistry;
 import com.myrpc.utils.Net.NetUtils;
 import com.myrpc.utils.ZK.ZKNode;
@@ -34,7 +35,7 @@ public class ZookeeperRegistry extends AbstarctRegistry {
         //创建本机的临时节点ip:port
         //服务提供方的端口由自己来设定，还需要一个获取ip的方法
         //todo:全局保存端口的地方
-        String node = parentNode+"/"+ NetUtils.getIP() + ":" + 8088;
+        String node = parentNode+"/"+ NetUtils.getIP() + ":" + YrpcBootstrap.PORT;
         //创建临时节点
         if(!ZKUtils.exists(zooKeeper,node,null)){
             ZKNode zkNode = new ZKNode(node,null);

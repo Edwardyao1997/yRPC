@@ -43,11 +43,14 @@ public class YrpcRequestEncoderHandler extends MessageToByteEncoder<YrpcRequest>
         byteBuf.writeByte(yrpcRequest.getCompressType());
         byteBuf.writeByte(yrpcRequest.getSerializeType());
         byteBuf.writeLong(yrpcRequest.getRequestId());
+        byteBuf.writeLong(yrpcRequest.getTimeStamp());
         //判断，心跳请求就不处理请求体
         //序列化可以被提取为工具类
-        Serializer serializer = SerializerFactory.getSerializer(YrpcBootstrap.SERIALIZE_TYPE).getSerializer();
-        byte[] body = serializer.serilize(yrpcRequest.getRequestPayload());
-
+        byte[] body = null;
+        if(yrpcRequest.getRequestPayload() !=null) {
+            Serializer serializer = SerializerFactory.getSerializer(YrpcBootstrap.SERIALIZE_TYPE).getSerializer();
+            body = serializer.serilize(yrpcRequest.getRequestPayload());
+        }
         if (body != null) {
             byteBuf.writeBytes(body);
         }

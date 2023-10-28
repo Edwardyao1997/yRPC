@@ -3,6 +3,7 @@ package com.myrpc.loadbalance.impl;
 import com.myrpc.Exceptions.LoadBalanceException;
 import com.myrpc.YrpcBootstrap;
 import com.myrpc.discovery.Registry;
+import com.myrpc.loadbalance.AbstractLoadBalencer;
 import com.myrpc.loadbalance.LoadBalancer;
 import com.myrpc.loadbalance.Selector;
 import lombok.extern.slf4j.Slf4j;
@@ -13,28 +14,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RoundRobinLoadBalancer implements LoadBalancer {
-    private Registry registry;
-    //一个服务匹配一个selector
-    private Map<String,Selector> cache = new ConcurrentHashMap<>(8);
-    public RoundRobinLoadBalancer() {
-        this.registry = YrpcBootstrap.getInstance().getRegistry();
-    }
+public class RoundRobinLoadBalancer extends AbstractLoadBalencer {
 
     @Override
-    public InetSocketAddress selectServiceAddress(String serviceName) {
-        //从cache中获取选择器
-        Selector selector = cache.get(serviceName);
-        //没有selector就新建
-        if(selector == null){
-            List<InetSocketAddress> serviceList = this.registry.lookFor(serviceName);
-            selector = new RoundRobinSelector(serviceList);
-            //将selector放入缓存中
-            cache.put(serviceName,selector);
-        }
-        //获取可用节点
-        return selector.getNext();
+    public Selector getSelector(List<InetSocketAddress> serviceList) {
+        return new RoundRobinSelector(serviceList);
     }
+
     @Slf4j
     private static class RoundRobinSelector implements Selector{
         private List<InetSocketAddress> serviceList;

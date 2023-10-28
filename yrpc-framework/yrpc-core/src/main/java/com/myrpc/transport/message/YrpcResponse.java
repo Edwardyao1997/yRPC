@@ -25,6 +25,7 @@ public class YrpcResponse {
     private byte code;
     private byte compressType;
     private byte serializeType;
+    private long timeStamp;
     /**
      * 响应消息体
      */

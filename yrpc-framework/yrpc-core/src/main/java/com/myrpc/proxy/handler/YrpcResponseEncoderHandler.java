@@ -48,11 +48,15 @@ public class YrpcResponseEncoderHandler extends MessageToByteEncoder<YrpcRespons
         byteBuf.writeByte(yrpcResponse.getSerializeType());
         byteBuf.writeByte(yrpcResponse.getCompressType());
         byteBuf.writeLong(yrpcResponse.getRequestId());
+        byteBuf.writeLong(yrpcResponse.getTimeStamp());
         //判断，心跳请求就不处理请求体
         //byte[] body = getBodyBytes(yrpcResponse.getBody());
         //
-        Serializer serializer = SerializerFactory.getSerializer(yrpcResponse.getSerializeType()).getSerializer();
-        byte[] body = serializer.serilize(yrpcResponse.getBody());
+        byte[] body = null;
+        if(yrpcResponse.getBody() != null) {
+            Serializer serializer = SerializerFactory.getSerializer(yrpcResponse.getSerializeType()).getSerializer();
+            body = serializer.serilize(yrpcResponse.getBody());
+        }
         if(body != null){
             byteBuf.writeBytes(body);
         }
