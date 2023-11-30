@@ -7,6 +7,7 @@ import com.myrpc.enumration.ResponseCode;
 import com.myrpc.transport.message.RequestPayload;
 import com.myrpc.transport.message.YrpcRequest;
 import com.myrpc.transport.message.YrpcResponse;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +15,17 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
+
 @Slf4j
 public class MethodCallHandler extends SimpleChannelInboundHandler <YrpcRequest>{
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, YrpcRequest yrpcRequest) throws Exception {
+        Channel channel = channelHandlerContext.channel();
+        SocketAddress socketAddress = channel.remoteAddress();
+        //限流则应该根据地质匹配限流器
+
         //获取负载内容
         RequestPayload requestPayload = yrpcRequest.getRequestPayload();
         //根据负载内容进行方法调用

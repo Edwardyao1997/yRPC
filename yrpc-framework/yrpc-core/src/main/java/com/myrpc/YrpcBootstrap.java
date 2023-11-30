@@ -47,7 +47,7 @@ public class YrpcBootstrap {
     private YrpcBootstrap() {
         //构造一些初始化的过程
     }
-
+    //单例获取
     public static YrpcBootstrap getInstance() {
         return yrpcBootstrap;
     }
@@ -173,7 +173,7 @@ public class YrpcBootstrap {
 
     /**
      * 配置序列化方式
-     * @param serialize
+     * @param serializeType
      * @return
      */
     public YrpcBootstrap serialize(String serializeType){

@@ -1,5 +1,9 @@
 package com.myrpc;
 
+/**
+ * 封装需要发布的服务
+ * @param <T>
+ */
 public class ServiceConfig<T> {
     private Class<T> interfaceProvider;
     private Object ref;
